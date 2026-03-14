@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@theme {
+	--font-sans: "Geist", sans-serif;
+	--font-mono: "JetBrains Mono", monospace;
+
+	--color-page: #0a0a0a;
+	--color-surface: #0f0f0f;
+	--color-elevated: #1a1a1a;
+	--color-input: #111111;
+
+	--color-border: #2a2a2a;
+	--color-border-secondary: #252525;
+	--color-border-focus: #10b981;
+
+	--color-primary: #fafafa;
+	--color-secondary: #6b7280;
+	--color-tertiary: #4b5563;
+
+	--color-accent-green: #10b981;
+	--color-accent-amber: #f59e0b;
+	--color-accent-red: #ef4444;
+	--color-accent-cyan: #06b6d4;
+
+	--color-danger: #ef4444;
+	--color-success: #10b981;
+	--color-warning: #f59e0b;
+
+	--color-diff-added: #0a1a0f;
+	--color-diff-removed: #1a0a0a;
+}
+
+[data-shiki] code {
+	font-family: "JetBrains Mono", monospace;
+	font-size: 13px;
+	line-height: 1.6;
+}
+
+[data-shiki] pre {
+	margin: 0;
+	padding: 12px 16px;
+	background: transparent !important;
+}
