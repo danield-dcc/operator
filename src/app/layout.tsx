@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { NavbarBrand, NavbarNav, NavbarRoot } from "@/components/navbar";
+import { TRPCReactProvider } from "@/trpc/client";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -32,7 +33,7 @@ export default function RootLayout({
 						</Link>
 					</NavbarNav>
 				</NavbarRoot>
-				{children}
+				<TRPCReactProvider>{children}</TRPCReactProvider>
 			</body>
 		</html>
 	);

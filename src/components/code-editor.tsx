@@ -243,7 +243,7 @@ function CodeEditorBody({
           spellCheck={false}
           autoComplete="off"
           autoCorrect="off"
-          autoCapitalize="off"
+          autoCapitalize="none"
           placeholder={placeholder}
           className="absolute inset-0 h-full w-full resize-none overflow-hidden bg-transparent p-3 font-mono text-xs leading-[1.6] text-transparent caret-primary outline-none [-webkit-text-fill-color:transparent] placeholder:[-webkit-text-fill-color:var(--color-tertiary)]"
           style={{
