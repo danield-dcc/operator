@@ -2,7 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import type { ComponentProps } from "react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
 import { useLanguageDetection } from "@/hooks/use-language-detection";
 import { useShikiHighlighter } from "@/hooks/use-shiki-highlighter";
@@ -38,6 +38,10 @@ type CodeEditorBodyProps = {
 	onChange: (value: string) => void;
 	placeholder?: string;
 };
+
+// --- Constants ---
+
+const CODE_MAX_LENGTH = 2500;
 
 // --- Helpers ---
 
@@ -126,35 +130,8 @@ function CodeEditorBody({
 	placeholder = "// paste your code here...",
 }: CodeEditorBodyProps) {
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
-	const highlightRef = useRef<HTMLDivElement>(null);
-	const lineNumbersRef = useRef<HTMLDivElement>(null);
 	const lineCount = getLineCount(code);
 	const showPlain = isHighlighting || !highlightedHtml;
-
-	const syncScroll = useCallback(() => {
-		const textarea = textareaRef.current;
-		const highlight = highlightRef.current;
-		const lineNumbers = lineNumbersRef.current;
-
-		if (!textarea) return;
-
-		if (highlight) {
-			highlight.scrollTop = textarea.scrollTop;
-			highlight.scrollLeft = textarea.scrollLeft;
-		}
-
-		if (lineNumbers) {
-			lineNumbers.scrollTop = textarea.scrollTop;
-		}
-	}, []);
-
-	useEffect(() => {
-		const textarea = textareaRef.current;
-		if (!textarea) return;
-
-		textarea.addEventListener("scroll", syncScroll);
-		return () => textarea.removeEventListener("scroll", syncScroll);
-	}, [syncScroll]);
 
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -220,12 +197,11 @@ function CodeEditorBody({
 	);
 
 	return (
-		<div className="flex h-[300px] overflow-hidden">
+		<div className="flex min-h-[273.6px] max-h-[419.2px] overflow-y-auto">
 			{/* Line numbers */}
 			<div
-				ref={lineNumbersRef}
 				aria-hidden="true"
-				className="flex w-12 shrink-0 flex-col overflow-hidden border-r border-border-secondary bg-surface py-3 text-right"
+				className="flex w-12 shrink-0 select-none flex-col border-r border-border-secondary bg-surface py-3 text-right"
 			>
 				{Array.from({ length: lineCount }, (_, i) => (
 					<span
@@ -242,16 +218,17 @@ function CodeEditorBody({
 			<div className="relative min-w-0 flex-1">
 				{/* Highlighted code layer */}
 				<div
-					ref={highlightRef}
 					aria-hidden="true"
-					className="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words p-3 font-mono text-xs leading-[1.6] text-primary"
+					className="pointer-events-none whitespace-pre-wrap break-words p-3 font-mono text-xs leading-[1.6] text-primary"
 					style={{ fontSize: 13 }}
 				>
 					{showPlain ? (
-						<span className="whitespace-pre-wrap break-words">{code}</span>
+						<span className="whitespace-pre-wrap break-words">
+							{code || "\u00A0"}
+						</span>
 					) : (
 						<div
-							className="[&_pre]:!m-0 [&_pre]:!bg-transparent [&_pre]:!p-0"
+							className="[&_pre]:m-0! [&_pre]:bg-transparent! [&_pre]:p-0!"
 							dangerouslySetInnerHTML={{ __html: highlightedHtml }}
 						/>
 					)}
@@ -268,12 +245,32 @@ function CodeEditorBody({
 					autoCorrect="off"
 					autoCapitalize="off"
 					placeholder={placeholder}
-					className="absolute inset-0 h-full w-full resize-none bg-transparent p-3 font-mono text-xs leading-[1.6] text-transparent caret-primary outline-none [-webkit-text-fill-color:transparent] placeholder:[-webkit-text-fill-color:var(--color-tertiary)]"
+					className="absolute inset-0 h-full w-full resize-none overflow-hidden bg-transparent p-3 font-mono text-xs leading-[1.6] text-transparent caret-primary outline-none [-webkit-text-fill-color:transparent] placeholder:[-webkit-text-fill-color:var(--color-tertiary)]"
 					style={{
 						fontSize: 13,
 					}}
 				/>
 			</div>
+		</div>
+	);
+}
+
+function CodeEditorFooter({
+	currentLength,
+	maxLength,
+}: {
+	currentLength: number;
+	maxLength: number;
+}) {
+	const isOverLimit = currentLength > maxLength;
+
+	return (
+		<div className="flex h-8 items-center justify-end border-t border-border px-4">
+			<span
+				className={`font-mono text-xs ${isOverLimit ? "text-danger" : "text-tertiary"}`}
+			>
+				{currentLength} / {maxLength}
+			</span>
 		</div>
 	);
 }
@@ -315,15 +312,21 @@ function CodeEditor({
 				onChange={onChange}
 				placeholder={placeholder}
 			/>
+			<CodeEditorFooter
+				currentLength={code.length}
+				maxLength={CODE_MAX_LENGTH}
+			/>
 		</CodeEditorRoot>
 	);
 }
 
 export {
+	CODE_MAX_LENGTH,
 	CodeEditor,
 	CodeEditorRoot,
 	CodeEditorHeader,
 	CodeEditorBody,
+	CodeEditorFooter,
 	codeEditorRootVariants,
 	codeEditorHeaderVariants,
 	type CodeEditorRootProps,
