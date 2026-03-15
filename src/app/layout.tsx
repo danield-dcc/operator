@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { NavbarBrand, NavbarNav, NavbarRoot } from "@/components/navbar";
+import { TRPCReactProvider } from "@/server/trpc/client";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,23 +17,29 @@ export default function RootLayout({
 	return (
 		<html lang="pt-BR">
 			<body className="min-h-screen bg-page font-mono text-primary">
-				<NavbarRoot>
-					<NavbarBrand>
-						<Link href="/" className="flex items-center gap-2">
-							<span className="text-xl font-bold text-accent-green">{">"}</span>
-							<span className="text-lg font-medium text-primary">devroast</span>
-						</Link>
-					</NavbarBrand>
-					<NavbarNav>
-						<Link
-							href="/leaderboard"
-							className="text-[13px] text-secondary transition-colors hover:text-primary"
-						>
-							leaderboard
-						</Link>
-					</NavbarNav>
-				</NavbarRoot>
-				{children}
+				<TRPCReactProvider>
+					<NavbarRoot>
+						<NavbarBrand>
+							<Link href="/" className="flex items-center gap-2">
+								<span className="text-xl font-bold text-accent-green">
+									{">"}
+								</span>
+								<span className="text-lg font-medium text-primary">
+									devroast
+								</span>
+							</Link>
+						</NavbarBrand>
+						<NavbarNav>
+							<Link
+								href="/leaderboard"
+								className="text-[13px] text-secondary transition-colors hover:text-primary"
+							>
+								leaderboard
+							</Link>
+						</NavbarNav>
+					</NavbarRoot>
+					{children}
+				</TRPCReactProvider>
 			</body>
 		</html>
 	);
