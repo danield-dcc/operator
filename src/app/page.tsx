@@ -1,8 +1,8 @@
+"use client";
+
 import Link from "next/link";
-import { Suspense } from "react";
-import { HomeEditor } from "@/components/home-editor";
-import { HomeMetrics } from "@/components/home-metrics";
-import { HomeMetricsSkeleton } from "@/components/home-metrics-skeleton";
+import { useState } from "react";
+import { CODE_MAX_LENGTH, CodeEditor } from "@/components/code-editor";
 import { Button } from "@/components/ui/button";
 import {
 	TableRowCode,
@@ -11,7 +11,7 @@ import {
 	TableRowRoot,
 	TableRowScore,
 } from "@/components/ui/table-row";
-import { getQueryClient, HydrateClient, trpc } from "@/server/trpc/server";
+import { Toggle } from "@/components/ui/toggle";
 
 type LeaderboardRow = {
 	rank: number;
@@ -47,9 +47,9 @@ const leaderboardData: LeaderboardRow[] = [
 	},
 ];
 
-export default async function Home() {
-	const queryClient = getQueryClient();
-	void queryClient.prefetchQuery(trpc.metrics.getHomepage.queryOptions());
+export default function Home() {
+	const [code, setCode] = useState("");
+	const isOverLimit = code.length > CODE_MAX_LENGTH;
 
 	return (
 		<main className="mx-auto flex max-w-240 flex-col items-center gap-8 px-10 pb-16 pt-20">
@@ -67,14 +67,32 @@ export default async function Home() {
 				</p>
 			</section>
 
-			<HomeEditor />
+			{/* Code Editor */}
+			<CodeEditor
+				code={code}
+				onChange={setCode}
+				placeholder="// paste your code here..."
+				className="max-w-195"
+			/>
+
+			{/* Actions Bar */}
+			<div className="flex w-full max-w-195 items-center justify-between">
+				<div className="flex items-center gap-4">
+					<Toggle label="roast mode" defaultChecked />
+					<span className="text-xs text-tertiary">
+						{"// maximum sarcasm enabled"}
+					</span>
+				</div>
+
+				<Button variant="primary" disabled={isOverLimit}>
+					$ roast_my_code
+				</Button>
+			</div>
 
 			{/* Footer Stats */}
-			<HydrateClient>
-				<Suspense fallback={<HomeMetricsSkeleton />}>
-					<HomeMetrics />
-				</Suspense>
-			</HydrateClient>
+			<p className="text-xs text-tertiary">
+				2,847 codes roasted · avg score: 4.2/10
+			</p>
 
 			{/* Spacer */}
 			<div className="h-15" />
