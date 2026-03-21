@@ -2,49 +2,24 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import {
-	TableRowCode,
-	TableRowLanguage,
-	TableRowRank,
-	TableRowRoot,
-	TableRowScore,
-} from "@/components/ui/table-row";
+import { LeaderboardCollapsibleRow } from "@/components/leaderboard-collapsible-row";
+import { useTRPC } from "@/trpc/client";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
-type LeaderboardRow = {
-	rank: number;
-	score: number;
-	codePreview: string;
-	language: string;
-	tone: "critical" | "warning" | "good" | "neutral";
-};
+type Tone = "critical" | "warning" | "good" | "neutral";
 
-const leaderboardData: LeaderboardRow[] = [
-	{
-		rank: 1,
-		score: 1.2,
-		codePreview:
-			'eval(prompt("enter code")) document.write(response) // trust the user lol',
-		tone: "critical",
-		language: "javascript",
-	},
-	{
-		rank: 2,
-		score: 1.8,
-		codePreview:
-			"if (x == true) { return true; } else if (x == false) { return false; }",
-		tone: "critical",
-		language: "typescript",
-	},
-	{
-		rank: 3,
-		score: 2.1,
-		codePreview: "SELECT * FROM users WHERE 1=1 -- TODO: add authentication",
-		tone: "critical",
-		language: "sql",
-	},
-];
+function getScoreTone(score: number): Tone {
+	if (score < 3) return "critical";
+	if (score < 6) return "warning";
+	return "good";
+}
 
 export function LeaderboardPreview() {
+	const trpc = useTRPC();
+	const { data } = useSuspenseQuery(
+		trpc.metrics.getShameLeaderboard.queryOptions(),
+	);
+
 	return (
 		<section className="flex w-full flex-col gap-6">
 			<div className="flex items-center justify-between">
@@ -70,18 +45,22 @@ export function LeaderboardPreview() {
 				</div>
 
 				{/* Table Rows */}
-				{leaderboardData.map((row) => (
-					<TableRowRoot key={row.rank}>
-						<TableRowRank>#{row.rank}</TableRowRank>
-						<TableRowScore tone={row.tone}>{row.score}</TableRowScore>
-						<TableRowCode>{row.codePreview}</TableRowCode>
-						<TableRowLanguage>{row.language}</TableRowLanguage>
-					</TableRowRoot>
+				{data.entries.map((row) => (
+					<LeaderboardCollapsibleRow
+						key={row.rank}
+						rank={row.rank}
+						score={row.score}
+						language={row.language}
+						lineCount={row.lineCount}
+						codePreview={row.codePreview}
+						highlightedHtml={row.highlightedHtml}
+						tone={getScoreTone(row.score)}
+					/>
 				))}
 			</div>
 
 			<p className="py-2 text-center text-xs text-tertiary">
-				showing top 3 of 2,847 ·{" "}
+				showing top 3 of {data.totalRoasts.toLocaleString("en-US")} ·{" "}
 				<Link
 					href="/leaderboard"
 					className="transition-colors hover:text-primary"

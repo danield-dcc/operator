@@ -3,10 +3,12 @@ import { HomepageHero } from "@/components/homepage-hero";
 import { HomepageStats } from "@/components/homepage-stats";
 import { HomepageStatsSkeleton } from "@/components/homepage-stats-skeleton";
 import { LeaderboardPreview } from "@/components/leaderboard-preview";
+import { LeaderboardPreviewSkeleton } from "@/components/leaderboard-preview-skeleton";
 import { HydrateClient, prefetch, trpc } from "@/trpc/server";
 
 export default function Home() {
 	prefetch(trpc.metrics.getHomepageStats.queryOptions());
+	prefetch(trpc.metrics.getShameLeaderboard.queryOptions());
 
 	return (
 		<HydrateClient>
@@ -20,7 +22,9 @@ export default function Home() {
 				{/* Spacer */}
 				<div className="h-15" />
 
-				<LeaderboardPreview />
+				<Suspense fallback={<LeaderboardPreviewSkeleton />}>
+					<LeaderboardPreview />
+				</Suspense>
 			</main>
 		</HydrateClient>
 	);
