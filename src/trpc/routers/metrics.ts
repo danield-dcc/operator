@@ -54,7 +54,7 @@ export const metricsRouter = createTRPCRouter({
 				return {
 					rank: i + 1,
 					shareId: r.shareId,
-					codePreview: r.code.split("\n")[0]?.slice(0, 60) ?? "",
+					codePreview: r.code.split("\n").slice(0, 3).join("\n"),
 					language: lang,
 					score: r.score ?? 0,
 					lineCount: r.code.split("\n").length,
