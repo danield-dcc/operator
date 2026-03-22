@@ -1,6 +1,6 @@
 "use client";
 
-import { Collapsible } from "@base-ui/react/collapsible";
+import { useState } from "react";
 import {
   TableRowRank,
   TableRowScore,
@@ -28,38 +28,38 @@ export function LeaderboardCollapsibleRow({
   highlightedHtml,
   tone,
 }: Props) {
+  const [open, setOpen] = useState(false);
+
   return (
-    <Collapsible.Root>
-      <div className="flex items-start gap-6 border-border px-5 pt-3 font-mono text-xs">
+    <div className="border-b border-border">
+      <div className="flex items-start gap-6 px-5 pt-3 font-mono text-xs">
         <TableRowRank>#{rank}</TableRowRank>
         <TableRowScore tone={tone}>{score}</TableRowScore>
 
-        <span className="min-w-0 flex-1 whitespace-pre-wrap break-all line-clamp-3 text-xs text-secondary pb-3">
-          {codePreview}
-        </span>
+        <div className="min-w-0 flex-1 pb-3">
+          {open ? (
+            <div
+              data-shiki
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: shiki-generated HTML
+              dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+            />
+          ) : (
+            <span className="whitespace-pre-wrap break-all line-clamp-3 text-xs text-secondary">
+              {codePreview}
+            </span>
+          )}
+        </div>
 
         <TableRowLanguage>{language}</TableRowLanguage>
       </div>
 
-      <Collapsible.Trigger className="w-full flex items-center justify-center border-b border-t border-border px-5 pb-3 pt-2 text-left text-xs text-tertiary hover:text-secondary transition-colors cursor-pointer font-mono">
-        show me more ▾
-      </Collapsible.Trigger>
-
-      <Collapsible.Panel>
-        <div className="border-b border-border">
-          <div className="flex items-center justify-between border-b border-border px-5 py-1.5 text-xs text-tertiary font-mono">
-            <span>{language}</span>
-            <span>
-              {lineCount} {lineCount === 1 ? "line" : "lines"}
-            </span>
-          </div>
-          <div
-            data-shiki
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: shiki-generated HTML
-            dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-          />
-        </div>
-      </Collapsible.Panel>
-    </Collapsible.Root>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-center border-t border-border px-5 pb-3 pt-2 text-xs text-tertiary hover:text-secondary transition-colors cursor-pointer font-mono"
+      >
+        {open ? "show less ▴" : "show me more ▾"}
+      </button>
+    </div>
   );
 }
