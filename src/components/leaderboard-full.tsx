@@ -1,8 +1,5 @@
-"use client";
-
-import { useTRPC } from "@/trpc/client";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { LeaderboardCollapsibleRow } from "@/components/leaderboard-collapsible-row";
+import { getCaller } from "@/trpc/server";
 
 type Tone = "critical" | "warning" | "good" | "neutral";
 
@@ -12,11 +9,9 @@ function getScoreTone(score: number): Tone {
   return "good";
 }
 
-export function LeaderboardFull() {
-  const trpc = useTRPC();
-  const { data } = useSuspenseQuery(
-    trpc.metrics.getFullLeaderboard.queryOptions(),
-  );
+export async function LeaderboardFull() {
+  const caller = await getCaller();
+  const data = await caller.metrics.getFullLeaderboard();
 
   return (
     <>
@@ -40,7 +35,6 @@ export function LeaderboardFull() {
             rank={row.rank}
             score={row.score}
             language={row.language}
-            lineCount={row.lineCount}
             codePreview={row.codePreview}
             highlightedHtml={row.highlightedHtml}
             tone={getScoreTone(row.score)}

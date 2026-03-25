@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
+import { Suspense } from "react";
 import {
 	AnalysisCardDescription,
 	AnalysisCardRoot,
@@ -130,6 +132,23 @@ type PageProps = {
 	params: Promise<{ id: string }>;
 };
 
+function RoastResultSkeleton() {
+	return (
+		<main className="mx-auto flex max-w-240 flex-col gap-10 px-10 pb-16 pt-10">
+			<div className="flex items-center gap-12">
+				<div className="h-28 w-28 animate-pulse rounded-full bg-elevated" />
+				<div className="flex flex-1 flex-col gap-4">
+					<div className="h-6 w-40 animate-pulse rounded bg-elevated" />
+					<div className="h-8 w-3/4 animate-pulse rounded bg-elevated" />
+					<div className="h-4 w-48 animate-pulse rounded bg-elevated" />
+				</div>
+			</div>
+			<hr className="border-border" />
+			<div className="h-64 animate-pulse rounded border border-border bg-elevated" />
+		</main>
+	);
+}
+
 export async function generateMetadata({
 	params,
 }: PageProps): Promise<Metadata> {
@@ -144,7 +163,9 @@ export async function generateMetadata({
 
 // --- Page ---
 
-export default async function RoastResultPage({ params }: PageProps) {
+async function RoastResultContent({ params }: PageProps) {
+	await connection();
+
 	const { id } = await params;
 
 	// For now, ignore the id and use static data
@@ -231,8 +252,8 @@ export default async function RoastResultPage({ params }: PageProps) {
 					</div>
 
 					<div className="py-1">
-						{roastData.diff.lines.map((line, index) => (
-							<DiffLine key={index} type={line.type}>
+						{roastData.diff.lines.map((line) => (
+							<DiffLine key={`${line.type}-${line.code}`} type={line.type}>
 								{line.code}
 							</DiffLine>
 						))}
@@ -240,5 +261,13 @@ export default async function RoastResultPage({ params }: PageProps) {
 				</div>
 			</section>
 		</main>
+	);
+}
+
+export default function RoastResultPage({ params }: PageProps) {
+	return (
+		<Suspense fallback={<RoastResultSkeleton />}>
+			<RoastResultContent params={params} />
+		</Suspense>
 	);
 }

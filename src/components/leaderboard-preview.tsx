@@ -1,10 +1,7 @@
-"use client";
-
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { LeaderboardCollapsibleRow } from "@/components/leaderboard-collapsible-row";
-import { useTRPC } from "@/trpc/client";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { buttonVariants } from "@/components/ui/button";
+import { getCaller } from "@/trpc/server";
 
 type Tone = "critical" | "warning" | "good" | "neutral";
 
@@ -14,11 +11,9 @@ function getScoreTone(score: number): Tone {
 	return "good";
 }
 
-export function LeaderboardPreview() {
-	const trpc = useTRPC();
-	const { data } = useSuspenseQuery(
-		trpc.metrics.getShameLeaderboard.queryOptions(),
-	);
+export async function LeaderboardPreview() {
+	const caller = await getCaller();
+	const data = await caller.metrics.getShameLeaderboard();
 
 	return (
 		<section className="flex w-full flex-col gap-6">
@@ -28,7 +23,12 @@ export function LeaderboardPreview() {
 					shame_leaderboard
 				</h2>
 
-				<Button variant="ghost">{"$ view_all >>"}</Button>
+				<Link
+					href="/leaderboard"
+					className={buttonVariants({ variant: "ghost", size: "sm" })}
+				>
+					{"$ view_all >>"}
+				</Link>
 			</div>
 
 			<p className="text-[13px] text-tertiary">
@@ -51,7 +51,6 @@ export function LeaderboardPreview() {
 						rank={row.rank}
 						score={row.score}
 						language={row.language}
-						lineCount={row.lineCount}
 						codePreview={row.codePreview}
 						highlightedHtml={row.highlightedHtml}
 						tone={getScoreTone(row.score)}
@@ -60,7 +59,10 @@ export function LeaderboardPreview() {
 			</div>
 
 			<p className="py-2 text-center text-xs text-tertiary">
-				showing top 3 of {data.totalRoasts.toLocaleString("en-US")} ·{" "}
+				showing worst 3 of {data.totalRoasts.toLocaleString("en-US")} total
+				roasts
+				{" · avg score: "}
+				{data.avgScore.toFixed(1)}/10{" · "}
 				<Link
 					href="/leaderboard"
 					className="transition-colors hover:text-primary"

@@ -1,6 +1,6 @@
-import { avg, count, asc } from "drizzle-orm";
+import { asc, avg, count } from "drizzle-orm";
 import { cacheLife } from "next/cache";
-import { codeToHtml, type BundledLanguage } from "shiki";
+import { type BundledLanguage, codeToHtml } from "shiki";
 import { db } from "@/db";
 import { roasts } from "@/db/schema";
 import { baseProcedure, createTRPCRouter } from "../init";
@@ -83,7 +83,9 @@ async function fetchShameLeaderboard() {
 
 	// Run both queries in parallel to avoid sequential round-trips to the DB
 	const [statsResult, worstRoasts] = await Promise.all([
-		db.select({ totalRoasts: count(roasts.id) }).from(roasts),
+		db
+			.select({ totalRoasts: count(roasts.id), avgScore: avg(roasts.score) })
+			.from(roasts),
 		db
 			.select({
 				shareId: roasts.shareId,
@@ -97,6 +99,7 @@ async function fetchShameLeaderboard() {
 	]);
 
 	const [stats] = statsResult;
+	const rawAvg = stats?.avgScore ? Number.parseFloat(stats.avgScore) : 0;
 
 	const entries = await Promise.all(
 		worstRoasts.map(async (r, i) => {
@@ -125,6 +128,7 @@ async function fetchShameLeaderboard() {
 
 	return {
 		totalRoasts: stats?.totalRoasts ?? 0,
+		avgScore: Math.round(rawAvg * 10) / 10,
 		entries,
 	};
 }
