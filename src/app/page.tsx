@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { HomepageHero } from "@/components/homepage-hero";
+import { HomepageHeroProvider } from "@/components/homepage-hero-provider";
 import { HomepageStats } from "@/components/homepage-stats";
 import { HomepageStatsSkeleton } from "@/components/homepage-stats-skeleton";
 import { LeaderboardPreview } from "@/components/leaderboard-preview";
@@ -8,7 +8,7 @@ import { LeaderboardPreviewSkeleton } from "@/components/leaderboard-preview-ske
 export default function Home() {
 	return (
 		<main className="mx-auto flex max-w-240 flex-col items-center gap-8 px-10 pb-16 pt-20">
-			<HomepageHero />
+			<HomepageHeroProvider />
 
 			<Suspense fallback={<HomepageStatsSkeleton />}>
 				<HomepageStats />

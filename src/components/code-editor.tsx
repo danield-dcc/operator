@@ -2,7 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import type { ComponentProps } from "react";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
 import { useLanguageDetection } from "@/hooks/use-language-detection";
 import { useShikiHighlighter } from "@/hooks/use-shiki-highlighter";
@@ -280,6 +280,7 @@ function CodeEditorFooter({
 type CodeEditorProps = {
   code: string;
   onChange: (value: string) => void;
+  onLanguageChange?: (language: string) => void;
   placeholder?: string;
   className?: string;
 };
@@ -287,11 +288,16 @@ type CodeEditorProps = {
 function CodeEditor({
   code,
   onChange,
+  onLanguageChange,
   placeholder,
   className,
 }: CodeEditorProps) {
   const { selectedLanguage, isAutoDetected, setManualLanguage } =
     useLanguageDetection(code);
+
+  useEffect(() => {
+    onLanguageChange?.(selectedLanguage);
+  }, [selectedLanguage, onLanguageChange]);
 
   const { highlightedHtml, isLoading } = useShikiHighlighter(
     code,
