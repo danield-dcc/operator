@@ -1,3 +1,4 @@
+import { cacheLife } from "next/cache";
 import type { BundledLanguage, BundledTheme } from "shiki";
 import { codeToHtml } from "shiki";
 import { twMerge } from "tailwind-merge";
@@ -21,6 +22,9 @@ async function CodeBlock({
 	showLineNumbers = false,
 	className,
 }: CodeBlockProps) {
+	"use cache";
+	cacheLife({ expire: 3600 });
+
 	const html = await codeToHtml(code, {
 		lang,
 		theme,
@@ -53,24 +57,31 @@ async function CodeBlock({
 						aria-hidden="true"
 						className="flex w-10 shrink-0 select-none flex-col items-end gap-0 border-r border-border-secondary bg-surface px-2.5 py-3.5"
 					>
-						{Array.from({ length: lineCount }, (_, i) => (
-							<span
-								key={i}
-								className="block font-mono text-xs leading-[1.6] text-tertiary"
-								style={{ fontSize: 13 }}
-							>
-								{i + 1}
-							</span>
-						))}
+						{Array.from({ length: lineCount }, (_, index) => index + 1).map(
+							(lineNumber) => (
+								<span
+									key={lineNumber}
+									className="block font-mono text-xs leading-[1.6] text-tertiary"
+									style={{ fontSize: 13 }}
+								>
+									{lineNumber}
+								</span>
+							),
+						)}
 					</div>
 					<div
 						className="min-w-0 flex-1"
 						data-shiki
+						// biome-ignore lint/security/noDangerouslySetInnerHtml: shiki-generated HTML
 						dangerouslySetInnerHTML={{ __html: html }}
 					/>
 				</div>
 			) : (
-				<div data-shiki dangerouslySetInnerHTML={{ __html: html }} />
+				<div
+					data-shiki
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: shiki-generated HTML
+					dangerouslySetInnerHTML={{ __html: html }}
+				/>
 			)}
 		</div>
 	);
