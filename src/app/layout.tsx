@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { NavbarBrand, NavbarNav, NavbarRoot } from "@/components/navbar";
+import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 export const metadata: Metadata = {
 	title: "devroast",
 	description: "Paste your code. Get roasted.",
+	metadataBase: new URL(getSiteUrl()),
 };
 
 export default function RootLayout({

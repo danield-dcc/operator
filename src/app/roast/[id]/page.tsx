@@ -1,6 +1,5 @@
 import { diffLines } from "diff";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import type { BundledLanguage } from "shiki";
 import {
@@ -13,7 +12,12 @@ import { CodeBlock } from "@/components/ui/code-block";
 import { DiffLine } from "@/components/ui/diff-line";
 import { ScoreRing } from "@/components/ui/score-ring";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { getCaller } from "@/trpc/server";
+import {
+	buildRoastDescription,
+	getRoastByShareIdOrThrow,
+	getRoastOgImagePath,
+	getVerdictStatus,
+} from "./roast-data";
 
 // --- Types ---
 
@@ -22,15 +26,6 @@ type DiffLineData = {
 	type: "added" | "removed" | "context";
 	code: string;
 };
-
-// --- Helpers ---
-
-function getVerdictStatus(verdict: string): "critical" | "warning" | "good" {
-	if (verdict === "disaster" || verdict === "needs_serious_help")
-		return "critical";
-	if (verdict === "needs_improvement") return "warning";
-	return "good";
-}
 
 function buildDiffLines(original: string, suggested: string): DiffLineData[] {
 	return diffLines(original, suggested).flatMap((part, partIndex) => {
@@ -80,11 +75,36 @@ export async function generateMetadata({
 	params,
 }: PageProps): Promise<Metadata> {
 	const { id } = await params;
+	const roast = await getRoastByShareIdOrThrow(id);
+	const imageUrl = getRoastOgImagePath(id);
+	const title = `roast ${id.slice(0, 8)} | devroast`;
+	const description = buildRoastDescription(
+		roast.roastQuote,
+		roast.score,
+		roast.verdict,
+	);
 
 	return {
-		title: `roast ${id.slice(0, 8)} | devroast`,
-		description:
-			"Code roast result — see the score, analysis, and suggested fixes.",
+		title,
+		description,
+		openGraph: {
+			title,
+			description,
+			images: [
+				{
+					url: imageUrl,
+					width: 1200,
+					height: 630,
+					alt: `Roast result for ${id}`,
+				},
+			],
+		},
+		twitter: {
+			card: "summary_large_image",
+			title,
+			description,
+			images: [imageUrl],
+		},
 	};
 }
 
@@ -92,11 +112,7 @@ export async function generateMetadata({
 
 async function RoastResultContent({ params }: PageProps) {
 	const { id } = await params;
-
-	const caller = await getCaller();
-	const roast = await caller.roasts
-		.getRoastByShareId({ shareId: id })
-		.catch(() => notFound());
+	const roast = await getRoastByShareIdOrThrow(id);
 
 	const verdictStatus = getVerdictStatus(roast.verdict);
 	const language = (roast.language ?? "text") as BundledLanguage;
